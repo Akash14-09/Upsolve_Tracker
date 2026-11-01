@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Upsolve Tracker — Never forget a contest problem again</title>
+  <style>
+    :root {
+      --bg: #0d1017;
+      --surface: #131722;
+      --surface-hover: #191e2b;
+      --border: #222736;
+      --border-focus: #6c63ff;
+      --text: #f1f5f9;
+      --text-muted: #8b95a5;
+      --accent: #6c63ff;
+      --accent-hover: #5a52e0;
+      --todo: #f59e0b;
+      --attempted: #3b82f6;
+      --solved: #10b981;
+      --pill-bg: #1e2436;
+      --pill-text: #94a3b8;
+    }
+    html.light {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --surface-hover: #f1f5f9;
+      --border: #e2e8f0;
+      --border-focus: #6c63ff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #6c63ff;
+      --accent-hover: #5a52e0;
+      --todo: #d97706;
+      --attempted: #2563eb;
+      --solved: #059669;
+      --pill-bg: #f1f5f9;
+      --pill-text: #475569;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+      min-height: 100vh;
+      padding: 28px 20px 60px;
+      transition: background 0.2s, color 0.2s;
+    }
+    .container { max-width: 960px; margin: 0 auto; }
+    
+    /* Header */
+    .header {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 14px; margin-bottom: 24px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .logo {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: var(--accent); color: #fff; font-weight: 800;
+      font-size: 20px; display: flex; align-items: center; justify-content: center;
+    }
+    .brand h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+    .brand p { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+    .header-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .ext-status {
+      display: flex; align-items: center; gap: 7px; font-size: 12px;
+      color: var(--text-muted); padding: 6px 10px; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--surface);
+    }
+    .ext-dot { width: 8px; height: 8px; border-radius: 50%; background: #64748b; }
+    .ext-dot.connected { background: var(--solved); box-shadow: 0 0 8px var(--solved); }
+    .btn {
+      background: var(--surface); color: var(--text);
+      border: 1px solid var(--border); padding: 8px 14px;
+      border-radius: 8px; font-size: 13px; font-weight: 500;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .btn:hover { border-color: var(--text-muted); }
+    .btn-primary {
+      background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600;
+    }
+    .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+
+    /* Stat Cards */
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 14px;
+    }
+    @media (max-width: 640px) { .stats-grid { grid-template-columns: repeat(1, 1fr); } }
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 16px 18px; cursor: pointer; transition: all 0.15s;
+    }
+    .stat-card.active { border-color: var(--accent); background: rgba(108, 99, 255, 0.08); }
+    .stat-num { font-size: 26px; font-weight: 800; margin-bottom: 4px; }
+    .stat-label { font-size: 12px; color: var(--text-muted); }
+
+    /* Input Box */
+    .input-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 16px; margin-bottom: 24px;
+    }
+    textarea {
+      width: 100%; min-height: 64px; background: var(--bg); color: var(--text);
+      border: 1px solid var(--border); border-radius: 8px; padding: 12px;
+      font-size: 13px; resize: vertical; outline: none; margin-bottom: 10px;
+      font-family: inherit;
+    }
+    textarea:focus { border-color: var(--border-focus); }
+    .input-footer {
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+    }
+    .input-hint { font-size: 12px; color: var(--text-muted); max-width: 65%; }
+
+    /* Section Headers */
+    .section-title {
+      font-size: 16px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+    }
+    .section-title span { font-size: 12px; background: var(--surface); border: 1px solid var(--border); padding: 2px 8px; border-radius: 999px; color: var(--text-muted); }
+    .divider { height: 1px; background: var(--border); margin: 28px 0 20px; }
+
+    /* Problem Cards */
+    .problem-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+    .empty-state {
+      text-align: center; padding: 28px 20px; background: var(--surface);
+      border: 1px dashed var(--border); border-radius: 12px; color: var(--text-muted);
+      font-size: 13px;
+    }
+    .problem-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 16px 18px;
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+      flex-wrap: wrap;
+    }
+    .problem-card.is-solved { opacity: 0.75; background: rgba(16, 185, 129, 0.03); border-color: rgba(16, 185, 129, 0.2); }
+    .prob-left { display: flex; align-items: flex-start; gap: 14px; flex: 1; min-width: 240px; }
+    .plat-icon-box {
+      width: 34px; height: 34px; border-radius: 8px; background: var(--bg);
+      border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; margin-top: 2px;
+    }
+    .prob-title {
+      font-size: 15px; font-weight: 700; color: var(--text); text-decoration: none;
+      display: inline-block; margin-bottom: 8px;
+    }
+    .prob-title:hover { color: var(--accent); }
+    .badges-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 8px; }
+    .badge {
+      font-size: 11px; padding: 3px 9px; border-radius: 999px;
+      background: var(--pill-bg); color: var(--pill-text); font-weight: 500;
+    }
+    .theory-link {
+      font-size: 11px; padding: 3px 8px; border-radius: 6px;
+      text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;
+    }
+    .theory-cp { background: rgba(59, 130, 246, 0.14); color: #60a5fa; }
+    .theory-usaco { background: rgba(16, 185, 129, 0.14); color: #34d399; }
+    .prob-meta { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
+    .prob-actions { display: flex; gap: 12px; font-size: 12px; color: var(--text-muted); }
+    .prob-actions button {
+      background: none; border: none; color: var(--text-muted);
+      cursor: pointer; font-size: 12px; padding: 0;
+    }
+    .prob-actions button:hover { color: var(--text); }
+    .note-box {
+      margin-top: 8px; font-size: 12px; padding: 8px 10px;
+      background: var(--bg); border-left: 3px solid var(--accent); border-radius: 4px;
+    }
+
+    /* Segmented Status Control */
+    .status-group {
+      display: inline-flex; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; overflow: hidden; flex-shrink: 0;
+    }
+    .status-btn {
+      background: transparent; border: none; color: var(--text-muted);
+      padding: 6px 11px; font-size: 12px; font-weight: 600; cursor: pointer;
+    }
+    .status-btn.active-todo { background: var(--todo); color: #000; }
+    .status-btn.active-attempted { background: var(--attempted); color: #fff; }
+    .status-btn.active-solved { background: var(--solved); color: #000; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="brand">
+        <div class="logo">U</div>
+        <div>
+          <h1>Upsolve Tracker</h1>
+          <p>Never forget a contest problem again</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <div class="ext-status" id="ext-status-badge">
+          <span class="ext-dot" id="ext-dot"></span>
+          <span id="ext-text">Extension not detected</span>
+        </div>
+        <button class="btn" id="theme-btn" title="Toggle Light/Dark Mode">☀️</button>
+        <button class="btn" id="export-btn">Export</button>
+        <button class="btn" id="import-btn">Import</button>
+        <input type="file" id="import-file" accept=".json" style="display:none" />
+      </div>
+    </header>
+
+    <div class="stats-grid">
+      <div class="stat-card" data-status="todo">
+        <div class="stat-num" style="color:var(--todo)" id="count-todo">0</div>
+        <div class="stat-label">To solve (Upsolve Queue)</div>
+      </div>
+      <div class="stat-card" data-status="solved">
+        <div class="stat-num" style="color:var(--solved)" id="count-solved">0</div>
+        <div class="stat-label">Recently Solved</div>
+      </div>
+      <div class="stat-card active" data-status="all">
+        <div class="stat-num" id="count-all">0</div>
+        <div class="stat-label">Total Problems</div>
+      </div>
+    </div>
+
+    <div class="input-card">
+      <textarea id="bulk-input" placeholder="Paste problem links here, one per line (Codeforces, LeetCode, CodeChef)..."></textarea>
+      <div class="input-footer">
+        <span class="input-hint">Click the minimalist '+' button on contest pages to add problems instantly.</span>
+        <div style="display:flex; gap:8px;">
+          <button class="btn" id="sample-btn">Load samples</button>
+          <button class="btn btn-primary" id="add-btn">+ Add problems</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- UPSOLVE QUEUE SECTION -->
+    <div class="section-title">
+      🎯 Upsolve Problems (<span id="queue-count">0</span>)
+    </div>
+    <div class="problem-list" id="queue-list"></div>
+
+    <div class="divider"></div>
+
+    <!-- RECENTLY SOLVED SECTION -->
+    <div class="section-title" style="color: var(--solved);">
+      ✅ Recently Solved (<span id="solved-count">0</span>)
+    </div>
+    <div class="problem-list" id="solved-list"></div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "upsolve_tracker_v3";
+    const THEORY_LINKS = {
+      "greedy": { 
+        cp: "https://cp-algorithms.com/schedules.html", 
+        usaco: "https://usaco.guide/silver/greedy-sorting?lang=cpp" 
+      },
+      "dp": { 
+        cp: "https://cp-algorithms.com/dynamic_programming/intro-to-dp.html", 
+        usaco: "https://usaco.guide/gold/intro-dp?lang=cpp" 
+      },
+      "math": { 
+        cp: "https://cp-algorithms.com/algebra/binary-exp.html", 
+        usaco: "https://usaco.guide/gold/modular?lang=cpp" 
+      },
+      "number theory": { 
+        cp: "https://cp-algorithms.com/algebra/prime-sieve-linear.html", 
+        usaco: "https://usaco.guide/gold/divisibility?lang=cpp" 
+      },
+      "graphs": { 
+        cp: "https://cp-algorithms.com/graph/breadth-first-search.html", 
+        usaco: "https://usaco.guide/silver/graph-traversal?lang=cpp" 
+      },
+      "trees": { 
+        cp: "https://cp-algorithms.com/graph/lca.html", 
+        usaco: "https://usaco.guide/silver/tree-euler?lang=cpp" 
+      },
+      "binary search": { 
+        cp: "https://cp-algorithms.com/num_methods/binary_search.html", 
+        usaco: "https://usaco.guide/silver/binary-search?lang=cpp" 
+      },
+      "two pointers": { 
+        cp: "https://cp-algorithms.com/two_pointers.html", 
+        usaco: "https://usaco.guide/silver/two-pointers?lang=cpp" 
+      },
+      "segment tree": { 
+        cp: "https://cp-algorithms.com/data_structures/segment_tree.html", 
+        usaco: "https://usaco.guide/gold/PURS?lang=cpp" 
+      },
+      "implementation": { 
+        cp: "https://cp-algorithms.com/", 
+        usaco: "https://usaco.guide/bronze/simulation?lang=cpp" 
+      }
+    };
+
+    const SAMPLES = [
+      {
+        id: "sample_1",
+        platform: "leetcode",
+        title: "Minimum Moves to Equal Array Elements",
+        url: "https://leetcode.com/problems/minimum-moves-to-equal-array-elements/",
+        contest: "★ Medium",
+        topics: ["math", "greedy"],
+        status: "todo",
+        date: "Nov 1",
+        note: "",
+        updatedAt: Date.now()
+      },
+      {
+        id: "sample_2",
+        platform: "codeforces",
+        title: "C. Math and Physics",
+        url: "https://codeforces.com/contest/2278/problem/C",
+        contest: "Contest 2278",
+        topics: ["greedy", "binary search"],
+        status: "todo",
+        date: "Nov 1",
+        note: "",
+        updatedAt: Date.now() - 1000
+      }
+    ];
+
+    let problems = [];
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+      if (Array.isArray(saved) && saved.length > 0) {
+        problems = saved;
+      } else {
+        problems = [...SAMPLES];
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(problems));
+      }
+    } catch (e) {
+      problems = [...SAMPLES];
+    }
+
+    function save() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(problems));
+      render();
+    }
+
+    function getPlatSvg(p) {
+      if (p === "codeforces") return '<svg width="18" height="18" viewBox="0 0 24 24"><rect x="2" y="10" width="5" height="11" rx="1" fill="#f43f5e"/><rect x="9.5" y="5" width="5" height="16" rx="1" fill="#3b82f6"/><rect x="17" y="13" width="5" height="8" rx="1" fill="#eab308"/></svg>';
+      if (p === "leetcode") return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.4"><path d="M16 4l-9 9 9 9"/><line x1="11" y1="13" x2="21" y2="13"/></svg>';
+      return '<svg width="18" height="18" viewBox="0 0 24 24" fill="#d97706"><circle cx="12" cy="10" r="6"/><rect x="7" y="15" width="10" height="4" rx="1"/></svg>';
+    }
+
+    function parseProblemUrl(rawUrl) {
+      const url = rawUrl.trim();
+      let platform = "codeforces";
+      let title = url;
+      let contest = "Practice";
+
+      if (url.includes("leetcode.com")) {
+        platform = "leetcode";
+        const m = url.match(/problems\/([^\/\?]+)/);
+        const slug = m ? m[1] : url.split("/").filter(Boolean).pop();
+        title = slug.replace(/-/g, " ").replace(/\w/g, c => c.toUpperCase());
+        contest = "LeetCode";
+      } else if (url.includes("codechef.com")) {
+        platform = "codechef";
+        const slug = url.split("/").filter(Boolean).pop();
+        title = "Problem " + slug.toUpperCase();
+        contest = "CodeChef";
+      } else if (url.includes("codeforces.com")) {
+        platform = "codeforces";
+        const m1 = url.match(/contest\/(\d+)\/problem\/([A-Za-z0-9]+)/);
+        const m2 = url.match(/problemset\/problem\/(\d+)\/([A-Za-z0-9]+)/);
+        const m = m1 || m2;
+        if (m) {
+          contest = "Contest " + m[1];
+          title = `${m[2].toUpperCase()}. Codeforces ${m[1]}${m[2].toUpperCase()}`;
+        }
+      }
+      return { platform, title, contest };
+    }
+
+    function render() {
+      const todoList = problems.filter(p => p.status !== "solved");
+      const solvedList = problems.filter(p => p.status === "solved");
+
+      document.getElementById("count-todo").textContent = todoList.length;
+      document.getElementById("count-solved").textContent = solvedList.length;
+      document.getElementById("count-all").textContent = problems.length;
+
+      document.getElementById("queue-count").textContent = todoList.length;
+      document.getElementById("solved-count").textContent = solvedList.length;
+
+      // Render Upsolve Queue
+      const queueEl = document.getElementById("queue-list");
+      queueEl.innerHTML = "";
+      if (todoList.length === 0) {
+        queueEl.innerHTML = `<div class="empty-state">No pending upsolve problems! Paste links above or use the '+' extension button on contest pages.</div>`;
+      } else {
+        todoList.forEach(p => queueEl.appendChild(createCard(p)));
+      }
+
+      // Render Recently Solved
+      const solvedEl = document.getElementById("solved-list");
+      solvedEl.innerHTML = "";
+      if (solvedList.length === 0) {
+        solvedEl.innerHTML = `<div class="empty-state">No solved problems yet. Mark problems as solved to move them here automatically!</div>`;
+      } else {
+        solvedList.forEach(p => solvedEl.appendChild(createCard(p)));
+      }
+    }
+
+    function createCard(p) {
+      const card = document.createElement("div");
+      card.className = "problem-card" + (p.status === "solved" ? " is-solved" : "");
+
+      const badgesHtml = [
+        p.contest ? `<span class="badge">${p.contest}</span>` : "",
+        ...(p.topics || []).map(t => {
+          const links = THEORY_LINKS[t.toLowerCase()] || THEORY_LINKS["implementation"];
+          return `<span class="badge">${t}</span>
+            <a class="theory-link theory-cp" href="${links.cp}" target="_blank">📘 CP-Algo</a>
+            <a class="theory-link theory-usaco" href="${links.usaco}" target="_blank">📖 USACO</a>`;
+        })
+      ].join("");
+
+      card.innerHTML = `
+        <div class="prob-left">
+          <div class="plat-icon-box">${getPlatSvg(p.platform)}</div>
+          <div style="flex:1">
+            <a class="prob-title" href="${p.url}" target="_blank">${p.title}</a>
+            <div class="badges-row">${badgesHtml}</div>
+            <div class="prob-meta">Added ${p.date || "Nov 1"}</div>
+            <div class="prob-actions">
+              <button onclick="addNote('${p.id}')">+ Note</button>
+              <button onclick="addTopic('${p.id}')">+ Topic</button>
+              <button onclick="renameProb('${p.id}')">Rename</button>
+              <button onclick="deleteProb('${p.id}')">Delete</button>
+            </div>
+            ${p.note ? `<div class="note-box">${p.note}</div>` : ""}
+          </div>
+        </div>
+        <div class="status-group">
+          <button class="status-btn ${p.status === 'todo' ? 'active-todo' : ''}" onclick="setStatus('${p.id}','todo')">To solve</button>
+          <button class="status-btn ${p.status === 'attempted' ? 'active-attempted' : ''}" onclick="setStatus('${p.id}','attempted')">Attempted</button>
+          <button class="status-btn ${p.status === 'solved' ? 'active-solved' : ''}" onclick="setStatus('${p.id}','solved')">Solved</button>
+        </div>
+      `;
+      return card;
+    }
+
+    window.setStatus = (id, st) => {
+      const p = problems.find(x => x.id === id);
+      if (p) { p.status = st; p.updatedAt = Date.now(); save(); }
+    };
+    window.deleteProb = (id) => {
+      problems = problems.filter(x => x.id !== id); save();
+    };
+    window.renameProb = (id) => {
+      const p = problems.find(x => x.id === id);
+      const next = prompt("Rename problem:", p.title);
+      if (next) { p.title = next.trim(); save(); }
+    };
+    window.addNote = (id) => {
+      const p = problems.find(x => x.id === id);
+      const next = prompt("Add note / approach idea:", p.note || "");
+      if (next !== null) { p.note = next.trim(); save(); }
+    };
+    window.addTopic = (id) => {
+      const p = problems.find(x => x.id === id);
+      const next = prompt("Enter topic (greedy, dp, math, graphs, trees, binary search, two pointers, segment tree):", "dp");
+      if (next) {
+        p.topics = p.topics || [];
+        if (!p.topics.includes(next.toLowerCase())) p.topics.push(next.toLowerCase());
+        save();
+      }
+    };
+
+    document.getElementById("add-btn").onclick = () => {
+      const raw = document.getElementById("bulk-input").value.trim();
+      if (!raw) return;
+      raw.split(/\r?\n/).forEach(line => {
+        const url = line.trim();
+        if (!url) return;
+        const info = parseProblemUrl(url);
+        problems.unshift({
+          id: "p_" + Date.now() + Math.random().toString(36).slice(2, 6),
+          platform: info.platform,
+          title: info.title,
+          url,
+          contest: info.contest,
+          topics: ["greedy"],
+          status: "todo",
+          date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+          note: "",
+          updatedAt: Date.now()
+        });
+      });
+      document.getElementById("bulk-input").value = "";
+      save();
+    };
+
+    document.getElementById("sample-btn").onclick = () => {
+      problems = [...SAMPLES];
+      save();
+    };
+
+    document.getElementById("theme-btn").onclick = () => {
+      document.documentElement.classList.toggle("light");
+      document.getElementById("theme-btn").textContent =
+        document.documentElement.classList.contains("light") ? "🌙" : "☀️";
+    };
+
+    document.getElementById("export-btn").onclick = () => {
+      const blob = new Blob([JSON.stringify(problems, null, 2)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "upsolve-backup.json";
+      a.click();
+    };
+
+    document.getElementById("import-btn").onclick = () => document.getElementById("import-file").click();
+    document.getElementById("import-file").onchange = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        problems = JSON.parse(reader.result);
+        save();
+      };
+      reader.readAsText(file);
+    };
+
+    window.addEventListener("upsolve-ext-sync", () => {
+      const dot = document.getElementById("ext-dot");
+      const txt = document.getElementById("ext-text");
+      if (dot && txt) {
+        dot.classList.add("connected");
+        txt.textContent = "Extension connected";
+      }
+      try {
+        problems = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        render();
+      } catch (e) {}
+    });
+
+    render();
+  </script>
+</body>
+</html>
