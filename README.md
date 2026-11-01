@@ -1,64 +1,38 @@
-# 🎯 Upsolve Tracker
+# 🎯 Upsolve Tracker for Competitive Programming
 
-> Never forget a contest problem again. A minimalist competitive programming upsolve manager with a 1-click browser extension and a clean dashboard.
-
-![Upsolve Tracker Banner](https://img.shields.io/badge/CP-Upsolve%20Tracker-7c83f7?style=for-the-badge&logo=codeforces&logoColor=white)
-![Version](https://img.shields.io/badge/version-1.3.0-blue?style=flat-square)
-![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)
+Never forget a contest problem again. Upsolve Tracker is a lightweight web dashboard paired with a minimalist Chrome extension that lets you 1-click track problems across **Codeforces**, **LeetCode**, and **CodeChef**.
 
 ---
 
 ## ✨ Features
-
-* **1-Click Extension (`+` button):** Automatically injects a minimalist `+` button directly onto contest problem lists, practice tables, and problem pages on **Codeforces**, **LeetCode**, and **CodeChef**.
-* **Automatic Subtopic Theory Links:** Every problem topic (`greedy`, `dp`, `math`, `graphs`, `trees`, `binary search`, etc.) comes with direct C++ subtopic tutorial links to **CP-Algorithms** and **USACO Guide**.
-* **Clean Queue & Solved Sections:** Split into **🎯 Upsolve Problems** (what you need to solve) and **✅ Recently Solved** (solved problems automatically move down).
-* **Light & Dark Mode:** Smooth theme switcher built right into the header.
-* **No Backend Required:** Runs locally in your browser with instant auto-sync between contest sites and your web dashboard.
+- **Minimalist 1-Click Plus Button:** Injects a tiny `+` button directly onto contest problem lists and problem pages on Codeforces, LeetCode, and CodeChef.
+- **Targeted Subtopic Theory Links:** Automatically attaches direct tutorial links from **CP-Algorithms** and **USACO Guide** (set to C++) for every problem topic.
+- **Auto-Archive Solved Problems:** When marked as solved, problems instantly vanish from your main queue and drop down into a clean "Recently Solved" section.
+- **Light & Dark Mode:** Built-in theme switcher with persistent user preferences.
 
 ---
 
-## 📂 Repository Structure
+## 🚀 Installation and Setup
 
+### 1. Install the Chrome Extension
+1. Download or clone this repository.
+2. Open Google Chrome and go to `chrome://extensions/`.
+3. Enable **Developer mode** (top-right corner).
+4. Click **Load unpacked** and select the `upsolve-extension` folder from this repo.
+
+### 2. Open the Web Dashboard
+- Open the `upsolve-web/index.html` file directly in your browser, or visit the live deployed version.
+- The top-right badge will automatically show **Extension connected** once active.
+
+---
+
+## 📂 Project Structure
 ```text
 upsolve-tracker/
 ├── README.md
 ├── upsolve-web/
-│   └── index.html          # Your main dashboard interface
+│   └── index.html        # Main dashboard UI
 └── upsolve-extension/
-    ├── manifest.json       # Chrome Extension Manifest V3 configuration
-    ├── content.js          # Injects the '+' button & handles auto-sync
-    ├── icon16.png          # 16x16 toolbar icon
-    ├── icon48.png          # 48x48 extension icon
-    └── icon128.png         # 128x128 store icon
-```
-
----
-
-## 🚀 Installation & Setup (No Git Required)
-
-### 1. Install the Chrome Extension
-1. Download or clone this repository to your computer.
-2. Open Google Chrome and go to `chrome://extensions/`.
-3. Enable **Developer mode** using the toggle switch in the top-right corner.
-4. Click **Load unpacked** in the top-left corner.
-5. Select the **`upsolve-extension`** folder from this repository.
-
-### 2. Open Your Dashboard
-* Double-click **`upsolve-web/index.html`** to open your dashboard instantly in your browser, or deploy the `upsolve-web` folder for free on Netlify/Vercel.
-* The top-right badge will automatically turn green (`● Extension connected`) once active.
-
----
-
-## 💡 How to Use
-
-1. **Browse Contests:** Go to Codeforces, LeetCode, or CodeChef. You will see a small purple **`+`** button in front of problems or next to problem titles.
-2. **Add to Queue:** Click `+` to add a problem to your upsolve list instantly.
-3. **Study Theory:** Click the **📘 CP-Algo** or **📖 USACO** links on your dashboard to review subtopic theory before solving.
-4. **Mark as Solved:** Click **Solved** on any card to move it to your *Recently Solved* archive.
-
----
-
-## 🛡️ License
-
-Distributed under the MIT License. See `LICENSE` for more information.
+    ├── manifest.json     # Extension manifest v3 config
+    ├── content.js        # DOM injector & sync bridge
+    └── icon*.png         # App icons
